@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Animated Amazon Deforestation Map with Bar Chart</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <style>
+    #map {
+      height: 400px;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <canvas id="barChart" width="400" height="200"></canvas> <!-- Add the canvas for the bar chart -->
+
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Add Chart.js library -->
+  <script>
+    // Sample fictional data representing deforestation in the Amazon rainforest
+    const deforestationData = [
+      { lat: -3.4653, lng: -62.2159, date: "2022-01-01", area: 200 },
+      { lat: -4.9138, lng: -63.3706, date: "2022-03-15", area: 300 },
+      { lat: -5.6722, lng: -64.5949, date: "2022-06-30", area: 400 },
+      // Add more data points here...
+    ];
+
+    // Initialize the map
+    const map = L.map("map").setView([-4.6844, -63.4466], 6);
+
+    // Add the base map (You can choose other map layers, like satellite, terrain, etc.)
+    L.tileLayer(
+      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }
+    ).addTo(map);
+
+    let currentDataIndex = 0;
+    let marker;
+
+    // Function to update the map with the next deforestation data point
+    function updateMap() {
+      if (marker) {
+        marker.remove();
+      }
+
+      const data = deforestationData[currentDataIndex];
+      marker = L.marker([data.lat, data.lng]).addTo(map);
+      marker.bindPopup(`Date: ${data.date}<br>Deforested Area: ${data.area} acres`);
+
+      currentDataIndex = (currentDataIndex + 1) % deforestationData.length;
+
+      // Schedule the next update after 2 seconds (Adjust this interval based on your needs)
+      setTimeout(updateMap, 2000);
+    }
+
+    // Function to update the bar chart with the next deforestation data point
+    function updateBarChart() {
+      const ctx = document.getElementById("barChart").getContext("2d");
+
+      const dataLabels = deforestationData.map((data) => data.date);
+      const dataAreas = deforestationData.map((data) => data.area);
+
+      if (barChart) {
+        barChart.destroy();
+      }
+
+      barChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: dataLabels,
+          datasets: [
+            {
+              label: "Deforested Area (acres)",
+              data: dataAreas,
+              backgroundColor: "rgba(75, 192, 192, 0.2)",
+              borderColor: "rgba(75, 192, 192, 1)",
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          animation: {
+            duration: 1000, // Set the duration of the animation in milliseconds
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+            },
+          },
+        },
+      });
+    }
+
+    let barChart;
+
+    // Function to update both the map and the bar chart simultaneously
+    function updateMapAndBarChart() {
+      updateMap();
+      updateBarChart();
+    }
+
+    updateMapAndBarChart(); // Start the initial map and bar chart update
+
+  </script>
+</body>
+</html>
